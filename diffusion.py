@@ -80,6 +80,12 @@ class Diffusion(nn.Module):
         # 1. define the scheduler here
         # 2. pre-compute the coefficients for the diffusion process
         
+        self.alphas = cosine_schedule(self.num_timesteps)
+        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)
+        self.alphas_cumprod_prev = torch.cat([torch.tensor([1.0]), self.alphas_cumprod[:-1]])
+        self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod)
+        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - self.alphas_cumprod)
+        
         # ###########################################################
 
     def noise_like(self, shape, device):
@@ -112,14 +118,20 @@ class Diffusion(nn.Module):
         # Hint: use extract function to get the coefficients at time t
         # Hint: use self.noise_like function to generate noise. DO NOT USE torch.randn
         # Begin code here
-        ...
-        ...
-        ...
+        
+        alpha_t = extract(self.alphas, t, x.shape)
+        alpha_cumprod_t = extract(self.alphas_cumprod, t, x.shape)
+        sqrt_one_minus_alpha_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape)
+
+        pred_noise = self.model(x, t)
+        mean = (x - sqrt_one_minus_alpha_cumprod_t * pred_noise) / torch.sqrt(alpha_cumprod_t)
         
         if t_index == 0:
-            return ...
+            return mean
         else:
-            return ...
+            noise = self.noise_like(x.shape, x.device)
+            return mean + torch.sqrt(alpha_t) * noise
+
         # ####################################################
 
     @torch.no_grad()
@@ -138,6 +150,12 @@ class Diffusion(nn.Module):
         # 2. inside the loop, sample x_{t-1} from the reverse diffusion process
         # 3. clamp and unnormalize the generated image to valid pixel range
         # Hint: to get time index, you can use torch.full()
+
+        for i in reversed(range(self.num_timesteps)):
+            t = torch.full((b,), i, dtype=torch.long, device=img.device)
+            img = self.p_sample(img, t, i)
+        img = torch.clamp(unnormalize_to_zero_to_one(img), 0, 1)
+
         return img
         # ####################################################
 
@@ -153,7 +171,8 @@ class Diffusion(nn.Module):
         self.model.eval()
         #### TODO: Implement the sample function ####
         # Hint: use self.noise_like function to generate noise. DO NOT USE torch.randn
-        img = ...
+        img = self.noise_like((batch_size, self.channels, self.image_size, self.image_size), device=self.model.device)
+        img = self.p_sample_loop(img)
         return img
 
     # forward diffusion
@@ -169,7 +188,9 @@ class Diffusion(nn.Module):
             The sampled images.
         """
         ###### TODO: Implement the q_sample function #######
-        x_t = ...
+        sqrt_alpha_cumprod_t = extract(self.sqrt_alphas_cumprod, t, x_0.shape)
+        sqrt_one_minus_alpha_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x_0.shape)
+        x_t = sqrt_alpha_cumprod_t * x_0 + sqrt_one_minus_alpha_cumprod_t * noise
         return x_t
 
     def p_losses(self, x_0, t, noise):
@@ -185,7 +206,10 @@ class Diffusion(nn.Module):
         ###### TODO: Implement the p_losses function #######
         # define loss function wrt. the model output and the target
         # Hint: you can use pytorch built-in loss functions: F.l1_loss
-        loss = ...
+        
+        x_t = self.q_sample(x_0, t, noise)
+        pred_noise = self.model(x_t, t)
+        loss = F.l1_loss(pred_noise, noise)
 
         return loss
         # ####################################################
@@ -202,5 +226,6 @@ class Diffusion(nn.Module):
         b, c, h, w, device, img_size, = *x_0.shape, x_0.device, self.image_size
         assert h == img_size and w == img_size, f'height and width of image must be {img_size}'
         ###### TODO: Implement the forward function #######
-        t = torch.randint(...)
-        return ...
+        
+        t = torch.randint(0, self.num_timesteps, (b,), dtype=torch.long, device=device)
+        return self.p_losses(x_0, t, noise)
