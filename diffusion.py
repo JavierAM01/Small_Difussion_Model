@@ -82,9 +82,9 @@ class Diffusion(nn.Module):
         
         self.alphas = cosine_schedule(self.num_timesteps).to(model.device)
         self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(model.device)
-        self.alphas_cumprod_prev = torch.cat([torch.tensor([1.0]), self.alphas_cumprod[:-1]])
-        self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod)
-        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - self.alphas_cumprod)
+        self.alphas_cumprod_prev = torch.cat([torch.tensor([1.0]).to(model.device), self.alphas_cumprod[:-1]]).to(model.device)
+        self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod).to(model.device)
+        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - self.alphas_cumprod).to(model.device)
         
         # ###########################################################
 
