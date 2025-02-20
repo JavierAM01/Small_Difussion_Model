@@ -80,8 +80,8 @@ class Diffusion(nn.Module):
         # 1. define the scheduler here
         # 2. pre-compute the coefficients for the diffusion process
         
-        self.alphas = cosine_schedule(self.num_timesteps)
-        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)
+        self.alphas = cosine_schedule(self.num_timesteps).to(model.device)
+        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(model.device)
         self.alphas_cumprod_prev = torch.cat([torch.tensor([1.0]), self.alphas_cumprod[:-1]])
         self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod)
         self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - self.alphas_cumprod)

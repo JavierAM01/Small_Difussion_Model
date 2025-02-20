@@ -38,6 +38,7 @@ def setup_diffusion(train_steps, save_and_sample_every, fid,
         dim=unet_dim,
         dim_mults=unet_dim_mults,
     ).to(device)
+    model.device = device
 
     diffusion = Diffusion(
         model,
@@ -78,7 +79,8 @@ def train_diffusion(train_steps, save_and_sample_every, fid,
                     unet_dim=16, 
                     learning_rate=1e-3, 
                     dataloader_workers=16, 
-                    Diffusion=None):
+                    Diffusion=None,
+                    **kargs):
     wandb.login()
     wandb.init(
         project="DDPM_AFHQ",
@@ -130,7 +132,8 @@ def visualize_diffusion(train_steps, save_and_sample_every, fid,
                     unet_dim=16, 
                     learning_rate=1e-3, 
                     dataloader_workers=16, 
-                    Diffusion=None):
+                    Diffusion=None,
+                    **kargs):
     wandb.login()
     wandb.init(
         project="DDPM_AFHQ",
