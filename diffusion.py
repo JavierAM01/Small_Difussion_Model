@@ -131,7 +131,7 @@ class Diffusion(nn.Module):
         if t_index == 0:
             return x_prev
         else:
-            noise = self.noise_like(x.shape)
+            noise = self.noise_like(x.shape, self.device)
             return x_prev + noise * coef_var
 
         # ####################################################
@@ -173,7 +173,7 @@ class Diffusion(nn.Module):
         self.model.eval()
         #### TODO: Implement the sample function ####
         # Hint: use self.noise_like function to generate noise. DO NOT USE torch.randn
-        img = self.noise_like((batch_size, self.channels, self.image_size, self.image_size), device=self.model.device)
+        img = self.noise_like((batch_size, self.channels, self.image_size, self.image_size), device=self.device)
         img = self.p_sample_loop(img)
         return img
 
