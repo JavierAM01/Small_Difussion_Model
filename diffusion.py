@@ -126,13 +126,14 @@ class Diffusion(nn.Module):
         coef_mean = extract(self.sqrt_alphas_cumprod, t, x.shape).to(self.device)
         coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape).to(self.device)
         pred_noise = self.model(x, t)
+        x = x.to(self.device)
         x_prev = (x - coef_var * pred_noise) / coef_mean
         
         if t_index == 0:
-            return x_prev
+            return x_prev.cpu()
         else:
             noise = self.noise_like(x.shape, self.device)
-            return x_prev + noise * coef_var
+            return (x_prev + noise * coef_var).cpu()
 
         # ####################################################
 
