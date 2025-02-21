@@ -97,8 +97,8 @@ class TestDiffusion(unittest.TestCase):
             t_index = curr_dict["t_index"]
             expected_res = curr_dict["expected_res"]
             res = diffusion_test.p_sample(x, t, t_index)
-            print("res: ", res.device) 
-            print("expected_res: ", expected_res.device) 
+            print("res: ", res.device, res.dtype) 
+            print("expected_res: ", expected_res.device, expected_res.dtype) 
             torch.testing.assert_close(expected_res, res, atol=1e-4, rtol=1e-4)
 
     @weight(1)
