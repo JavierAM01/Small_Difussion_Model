@@ -151,7 +151,7 @@ class Diffusion(nn.Module):
         x_hat_0=torch.clamp(x_hat_0,-1,1) # maye 0,1  # estimate original 
 
         # computing meant
-        mean = ((torch.sqrt(alpha_t)(1-alpha_t_bar_prev))/(1-alpha_t_bar))*x + ((torch.sqrt(alpha_t_bar_prev)(1-alpha_t))/(1-alpha_t_bar)) * x_hat_0
+        mean = ((torch.sqrt(alpha_t)*(1-alpha_t_bar_prev))/(1-alpha_t_bar))*x + ((torch.sqrt(alpha_t_bar_prev)*(1-alpha_t))/(1-alpha_t_bar)) * x_hat_0
        
         # Add noise unless it's the final step
         if t_index == 0:
