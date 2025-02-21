@@ -80,11 +80,15 @@ class Diffusion(nn.Module):
         # 1. define the scheduler here
         # 2. pre-compute the coefficients for the diffusion process
         
-        self.alphas = cosine_schedule(self.num_timesteps).to(model.device)
-        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(model.device)
-        self.alphas_cumprod_prev = torch.cat([torch.tensor([1.0]).to(model.device), self.alphas_cumprod[:-1]]).to(model.device)
-        self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod).to(model.device)
-        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - self.alphas_cumprod).to(model.device)
+        self.device = model.device
+        
+        # Define the scheduler
+        self.alphas = cosine_schedule(self.num_timesteps, device=self.device)
+        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(self.device)
+        
+        # Precompute diffusion process coefficients
+        self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod).to(self.device)
+        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1 - self.alphas_cumprod).to(self.device)
         
         # ###########################################################
 
@@ -119,18 +123,16 @@ class Diffusion(nn.Module):
         # Hint: use self.noise_like function to generate noise. DO NOT USE torch.randn
         # Begin code here
         
-        alpha_t = extract(self.alphas, t, x.shape)
-        alpha_cumprod_t = extract(self.alphas_cumprod, t, x.shape)
-        sqrt_one_minus_alpha_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape)
-
+        coef_mean = extract(self.sqrt_alphas_cumprod, t, x.shape, self.device)
+        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape, self.device)
         pred_noise = self.model(x, t)
-        mean = (x - sqrt_one_minus_alpha_cumprod_t * pred_noise) / torch.sqrt(alpha_cumprod_t)
+        x_prev = (x - coef_var * pred_noise) / coef_mean
         
         if t_index == 0:
-            return mean
+            return x_prev
         else:
-            noise = self.noise_like(x.shape, x.device)
-            return mean + torch.sqrt(alpha_t) * noise
+            noise = self.noise_like(x.shape)
+            return x_prev + noise * coef_var
 
         # ####################################################
 
@@ -188,10 +190,9 @@ class Diffusion(nn.Module):
             The sampled images.
         """
         ###### TODO: Implement the q_sample function #######
-        sqrt_alpha_cumprod_t = extract(self.sqrt_alphas_cumprod, t, x_0.shape)
-        sqrt_one_minus_alpha_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x_0.shape)
-        x_t = sqrt_alpha_cumprod_t * x_0 + sqrt_one_minus_alpha_cumprod_t * noise
-        return x_t
+        coef_mean = extract(self.sqrt_alphas_cumprod, t, x_0.shape, self.device)
+        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x_0.shape, self.device)
+        return coef_mean * x_0 + coef_var * noise
 
     def p_losses(self, x_0, t, noise):
         """
@@ -212,6 +213,7 @@ class Diffusion(nn.Module):
         loss = F.l1_loss(pred_noise, noise)
 
         return loss
+
         # ####################################################
 
     def forward(self, x_0, noise):
