@@ -123,8 +123,8 @@ class Diffusion(nn.Module):
         # Hint: use self.noise_like function to generate noise. DO NOT USE torch.randn
         # Begin code here
         
-        coef_mean = extract(self.sqrt_alphas_cumprod, t, x.shape, self.device)
-        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape, self.device)
+        coef_mean = extract(self.sqrt_alphas_cumprod, t, x.shape).to(self.device)
+        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape).to(self.device)
         pred_noise = self.model(x, t)
         x_prev = (x - coef_var * pred_noise) / coef_mean
         
@@ -190,8 +190,8 @@ class Diffusion(nn.Module):
             The sampled images.
         """
         ###### TODO: Implement the q_sample function #######
-        coef_mean = extract(self.sqrt_alphas_cumprod, t, x_0.shape, self.device)
-        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x_0.shape, self.device)
+        coef_mean = extract(self.sqrt_alphas_cumprod, t, x_0.shape).to(self.device)
+        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x_0.shape).to(self.device)
         return coef_mean * x_0 + coef_var * noise
 
     def p_losses(self, x_0, t, noise):
