@@ -19,7 +19,7 @@ diffusion_test = None
 def get_testing_state():
     global device
         
-    final_save_dict = torch.load("data.pt", map_location=device)
+    final_save_dict = torch.load("data.pt", map_location=device, weights_only=False)
 
     # Delay import of diffusion until we have moved diffusion.py 
     # into place on Gradescope.
