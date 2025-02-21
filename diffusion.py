@@ -136,13 +136,13 @@ class Diffusion(nn.Module):
         #     return (x_prev + noise * coef_var).cpu()
 
         alpha_t = extract(self.alphas, t, x.shape)  # getting noise schedule at time t
-        alpha_t_bar= extract(self.alpha_t_bars ,t,x.shape) # cumulation of alphas until time t
+        alpha_t_bar= extract(self.alphas_cumprod ,t,x.shape) # cumulation of alphas until time t
         # alpha_t_bar_prev= extract(torch.cumprod(self.alphas, dim=0),t-1,x.shape)
         if (t_index == 0):
             # alpha_t_bar_prev = extract(torch.cumprod(self.alphas, dim=0), t, x.shape)  # Set to 1 if t=0, as alpha_t_bar_prev is 1 at t=0
             alpha_t_bar_prev = torch.ones_like(alpha_t_bar)
         else:
-            alpha_t_bar_prev = extract(self.alpha_t_bars , t-1, x.shape)
+            alpha_t_bar_prev = extract(self.alphas_cumprod , t-1, x.shape)
          # Predict noise using the model
         epsilon = self.model(x,t)  # predicited noise
 
