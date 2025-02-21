@@ -123,17 +123,43 @@ class Diffusion(nn.Module):
         # Hint: use self.noise_like function to generate noise. DO NOT USE torch.randn
         # Begin code here
         
-        coef_mean = extract(self.sqrt_alphas_cumprod, t, x.shape).to(self.device)
-        coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape).to(self.device)
-        pred_noise = self.model(x, t)
-        x = x.to(self.device)
-        x_prev = (x - coef_var * pred_noise) / coef_mean
+        # coef_mean = extract(self.sqrt_alphas_cumprod, t, x.shape).to(self.device)
+        # coef_var = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape).to(self.device)
+        # pred_noise = self.model(x, t)
+        # x = x.to(self.device)
+        # x_prev = (x - coef_var * pred_noise) / coef_mean
         
-        if t_index == 0:
-            return x_prev.cpu()
+        # if t_index == 0:
+        #     return x_prev.cpu()
+        # else:
+        #     noise = self.noise_like(x.shape, self.device)
+        #     return (x_prev + noise * coef_var).cpu()
+
+        alpha_t = extract(self.alphas, t, x.shape)  # getting noise schedule at time t
+        alpha_t_bar= extract(self.alpha_t_bars ,t,x.shape) # cumulation of alphas until time t
+        # alpha_t_bar_prev= extract(torch.cumprod(self.alphas, dim=0),t-1,x.shape)
+        if (t_index == 0):
+            # alpha_t_bar_prev = extract(torch.cumprod(self.alphas, dim=0), t, x.shape)  # Set to 1 if t=0, as alpha_t_bar_prev is 1 at t=0
+            alpha_t_bar_prev = torch.ones_like(alpha_t_bar)
         else:
-            noise = self.noise_like(x.shape, self.device)
-            return (x_prev + noise * coef_var).cpu()
+            alpha_t_bar_prev = extract(self.alpha_t_bars , t-1, x.shape)
+         # Predict noise using the model
+        epsilon = self.model(x,t)  # predicited noise
+
+        # computing x0
+        x_hat_0= (1/torch.sqrt(alpha_t_bar)) * (x- torch.sqrt(1-alpha_t_bar )*epsilon)
+        x_hat_0=torch.clamp(x_hat_0,-1,1) # maye 0,1  # estimate original 
+
+        # computing meant
+        mean = ((torch.sqrt(alpha_t)(1-alpha_t_bar_prev))/(1-alpha_t_bar))*x + ((torch.sqrt(alpha_t_bar_prev)(1-alpha_t))/(1-alpha_t_bar)) * x_hat_0
+       
+        # Add noise unless it's the final step
+        if t_index == 0:
+            return mean # since mean + 0*x = mean
+        else:
+            noise = self.noise_like(x.shape, x.device)  # Generate noise z 
+            sigma_t = torch.sqrt( ((1-alpha_t_bar_prev)/ (1-alpha_t_bar)) * (1-alpha_t) ) 
+            return mean + sigma_t * noise # returns x t-1
 
         # ####################################################
 
