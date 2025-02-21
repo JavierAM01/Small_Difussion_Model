@@ -38,7 +38,6 @@ def setup_diffusion(train_steps, save_and_sample_every, fid,
         dim=unet_dim,
         dim_mults=unet_dim_mults,
     ).to(device)
-    model.device = device
 
     diffusion = Diffusion(
         model,

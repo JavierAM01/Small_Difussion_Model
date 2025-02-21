@@ -80,7 +80,7 @@ class Diffusion(nn.Module):
         # 1. define the scheduler here
         # 2. pre-compute the coefficients for the diffusion process
         
-        self.device = model.device
+        self.device = next(model.parameters()).device
         
         # Define the scheduler
         self.alphas = cosine_schedule(self.num_timesteps, device=self.device)
