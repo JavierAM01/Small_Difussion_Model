@@ -83,7 +83,7 @@ class Diffusion(nn.Module):
         self.device = next(model.parameters()).device
         
         # Define the scheduler
-        self.alphas = cosine_schedule(self.num_timesteps, device=self.device)
+        self.alphas = cosine_schedule(self.num_timesteps).to(self.device)
         self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(self.device)
         
         # Precompute diffusion process coefficients
