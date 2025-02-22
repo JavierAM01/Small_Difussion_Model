@@ -3,3 +3,5 @@ data.pt
 venv/*
 __pycache__/*
 wandb/*
+results/*
+

@@ -287,8 +287,6 @@ class Trainer(object):
                 img_backward.append(img_vis)
 
         # save the images in wandb
-        img_forward.append(torch.cat(img_forward, dim=2))
-        img_backward.append(torch.cat(img_backward, dim=2))
         wandb.log({"forward_diffusion": [wandb.Image(img) for img in img_forward]})
         wandb.log({"backward_diffusion": [wandb.Image(img) for img in img_backward]})
         # ####################################################################
