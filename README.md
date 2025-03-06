@@ -10,7 +10,7 @@ This project explores different generative models for image synthesis, including
 
 ## Project Structure
 ```
-├── hw2/
+├── project/
 │   ├── data/
 │   ├── diffusion.py
 │   ├── main.py
