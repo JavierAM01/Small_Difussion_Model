@@ -1,4 +1,4 @@
-# Homework 2: Generative Models of Images
+# Generative Models of Images
 
 <p align="center">
   <img width="300" height="150" src="https://github.com/JavierAM01/Small_Difussion_Model/blob/main/images/cat1.png">
