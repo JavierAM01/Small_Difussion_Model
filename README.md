@@ -5,8 +5,6 @@
   <img width="300" height="150" src="https://github.com/JavierAM01/Small_Difussion_Model/blob/main/images/cat2.png">
 </p>
   
-## Course: 10-423/10-623 Generative AI
-
 ### Overview
 This project explores different generative models for image synthesis, including Convolutional Neural Networks (CNNs), Encoder-only Transformers, Generative Adversarial Networks (GANs), and Denoising Diffusion Probabilistic Models (DDPMs). We implement and experiment with these architectures, analyzing their effectiveness for image generation and inpainting tasks.
 
